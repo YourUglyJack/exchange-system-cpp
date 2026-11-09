@@ -1,0 +1,14 @@
+build/
+build-*/
+cmake-build-*/
+*.o
+compile_commands.json
+.DS_Store
+
+lob-v1/
+cpp-exchange-engine/
+
+CPP_EXCHANGE_ENGINE_PRD_v0.4.md
+CPP_EXCHANGE_ENGINE_PRD.md
+orderbook_data_structure.excalidraw
+orderbook_roadmap.md
