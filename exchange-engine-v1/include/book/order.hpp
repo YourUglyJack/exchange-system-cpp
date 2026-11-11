@@ -4,7 +4,7 @@
 #include <ostream>
 #include <list>
 
-#include "common/types.hpp"
+#include "../common/types.hpp"
 
 // Order 和 Trader 是 纯数据聚合，装数据的，所以 可以直接上 struct
 // class 和 struct 其实没啥区别，就是 访问权限 和 是否暴露接口 / 成员的问题
@@ -24,10 +24,10 @@ struct Order {
 struct Trade {
     OrderId maker_id;
     OrderId taker_id;
+    Side aggressor; // 这笔交易中 主动发起 交易的一方，谁主动吃掉了已经有的挂单
     Price price;
     Qty qty;
 
-    Side aggressor; // 这笔交易中 主动发起 交易的一方，谁主动吃掉了已经有的挂单
 };
 
 struct PriceLevel {
@@ -43,7 +43,8 @@ inline bool operator ==(const Trade& a, const Trade& b) noexcept {
     return a.maker_id == b.maker_id 
     && a.taker_id == b.taker_id
     && a.aggressor == b.aggressor 
-    && a.price == b.price;
+    && a.price == b.price
+    && a.qty == b.qty;
 }
 
 // TODO: 搞懂 inline
@@ -52,8 +53,8 @@ inline bool operator!=(const Trade& a, const Trade& b) noexcept {
 }
 
 // 为了让 << 可以识别 Trade 类型
-inline std::ostream& operator<<(std::ostream& os, const Trade* a) {
-    return os << "[TRADE] maker=" << a->maker_id << " taker=" << a->taker_id << " price=" << a->price << " qty=" << a->qty << "\n";
+inline std::ostream& operator<<(std::ostream& os, const Trade& a) {
+    return os << "[TRADE] maker=" << a.maker_id << " taker=" << a.taker_id << " price=" << a.price << " qty=" << a.qty << "\n";
 }
 
 }

@@ -6,13 +6,14 @@
 #include <cstdint>
 #include <vector>
 
-#include "book/order.hpp"
+#include "order.hpp"
+#include "../common/types.hpp"
 
 namespace lob {
 
 enum class AddStatus : std::uint8_t {
     Accepted,
-    DuplicatedId,
+    DuplicateId,
     InvalidQty,
     InvalidPrice,
 };
@@ -21,30 +22,30 @@ constexpr const char* to_string(AddStatus s) {
     switch (s) {
     case AddStatus::Accepted:
         return "Accepted";
-    case AddStatus::DuplicatedId:
-        return "DuplicatedId";
+    case AddStatus::DuplicateId:
+        return "DuplicateId";
     case AddStatus::InvalidQty:
         return "InvalidQty";
     case AddStatus::InvalidPrice:
         return "InvalidPrice";
     default:
-        return "Unknow";
+        return "Unknown";
     }
 }
 
 
 struct AddResult {
-    AddStatus statues{AddStatus::Accepted};
+    AddStatus status{AddStatus::Accepted};
     std::vector<Trade> trades; // 本次产生的所有交易，按照交易时间排序，因为可能 taker多个单，所以 需要 vector 存 trade
 
     bool accepted() const noexcept {
-        return statues == AddStatus::Accepted;
+        return status == AddStatus::Accepted;
     }
 };
 
 inline bool operator==(const AddResult& a, const AddResult& b) {
     // trade 的 operator == 已经重载了
-    return a.statues == b.statues && a.trades == b.trades;
+    return a.status == b.status && a.trades == b.trades;
 }
 
 // 订单薄快照 snap，每个价位一行
