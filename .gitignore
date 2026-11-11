@@ -3,6 +3,7 @@ build-*/
 cmake-build-*/
 *.o
 compile_commands.json
+settings.json
 .DS_Store
 
 lob-v1/
@@ -12,3 +13,6 @@ CPP_EXCHANGE_ENGINE_PRD_v0.4.md
 CPP_EXCHANGE_ENGINE_PRD.md
 orderbook_data_structure.excalidraw
 orderbook_roadmap.md
+
+exchange-engine-v1/v1_checklist.md
+exchange-engine-v1/src/BUILD_GUIDE.md

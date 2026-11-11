@@ -32,3 +32,22 @@ add_executable(
     "src/apps/file_driver.cpp" # 源文件，里面定义了 main()
 )
 target_link_libraries(exchange_engine PRIVATE engine_core)
+
+# 3. 单元测试
+# 允许 CTest 运行本项目注册的测试。
+enable_testing()
+
+# 查找本机已安装的 GoogleTest 的 CMake 配置，不自动下载依赖。
+find_package(GTest CONFIG REQUIRED)
+
+# 测试独立构建成程序，不包含业务入口 file_driver.cpp 中的 main()。
+add_executable(engine_tests "tests/test_order_book.cpp")
+
+# engine_core 提供被测业务代码和公开头文件路径。
+# GTest::gtest_main 提供 GoogleTest 和测试程序自己的 main()。
+target_link_libraries(engine_tests PRIVATE engine_core GTest::gtest_main)
+target_compile_options(engine_tests PRIVATE -Wall -Wextra -Wpedantic -Wshadow)
+
+# 加载 CMake 的 GoogleTest 模块，把 TEST 用例分别注册给 CTest。
+include(GoogleTest)
+gtest_discover_tests(engine_tests)
