@@ -21,10 +21,11 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
-#include "book/order.hpp"
-#include "book/results.hpp"
-#include "common/types.hpp"
+#include "order.hpp"
+#include "results.hpp"
+#include "../common/types.hpp"
 
 // hpp 在定义 数据结构和接口，没有具体实现
 
@@ -82,7 +83,7 @@ private:
     void match(Order& taker, OppositeLevels& opposite, std::vector<Trade>& out);
 
     template <class OwnLevels>
-    void reset(const Order& other, OwnLevels& own);
+    void rest(const Order& order, OwnLevels& own);
 
     // 删除 order，当 该 price 档位 没有 order得时候，删除该 档位
     template <class Levels>
