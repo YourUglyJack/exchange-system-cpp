@@ -7,7 +7,7 @@
 
 #include "book/map_orderbook.hpp"
 
-namespace lob {
+namespace exchange {
 
 struct RunStats {
     std::size_t lines = 0; // 读取行数

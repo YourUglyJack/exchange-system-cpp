@@ -8,14 +8,14 @@
 #include <vector>
 
 
-namespace lob {
+namespace exchange {
 
 #ifndef NDEBUG
 #define LOB_CHECK_INVARIANTS() \
     do { \
         std::string lob_why_; \
         if (!check_invariants(&lob_why_)) { \
-            std::cerr << "[lob] invariant violated: " << lob_why_ << "\n"; \
+            std::cerr << "[exchange] invariant violated: " << lob_why_ << "\n"; \
             std::abort(); \
         } \
     } while (0)

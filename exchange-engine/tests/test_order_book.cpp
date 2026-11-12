@@ -3,7 +3,7 @@
 
 #include "book/map_orderbook.hpp"
 
-using namespace lob;
+using namespace exchange;
 // xxx_条件(params)
 // 条件成立，什么都不发生
 // 条件不成立: 

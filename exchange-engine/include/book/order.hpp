@@ -1,33 +1,28 @@
+// ============================================
+// v1 -> v2
+// [修改] Order 新增 累计成交量
+// [移动] Trade 移动到 engien/events.hpp, 对外事件
+// [新增] Fill 订单簿每撮合一笔，就产出一个 Fill 交给 Engine
+// ============================================
 #pragma once
 
 #include <cstdint>
-#include <ostream>
-#include <list>
+#include "common/types.hpp"
 
-#include "../common/types.hpp"
-
-// Order 和 Trader 是 纯数据聚合，装数据的，所以 可以直接上 struct
 // class 和 struct 其实没啥区别，就是 访问权限 和 是否暴露接口 / 成员的问题
 
-namespace lob {
+namespace exchange {
 
+// why 不需要 type / tif / symbol ?
+// 能挂在 订单簿上的肯定是 limit + GTC
+// 订单簿是按照品种分开的，一个簿里的 Order 都是同一个 Symbol的
 struct Order {
     OrderId id;
     Side side;
-    Price price;
-    Qty qty; // remaining
-
+    Price price; // 限价
+    Qty qty;    // remaining
+    Qty cum_qty; // 累计成交量，for modify 
     std::uint64_t seq; // 订单顺序号，单调递增
-};
-
-// 一笔成交， 一张 taker 订单 可能有很多 trade， 吃掉好几个 maker
-struct Trade {
-    OrderId maker_id;
-    OrderId taker_id;
-    Side aggressor; // 这笔交易中 主动发起 交易的一方，谁主动吃掉了已经有的挂单
-    Price price;
-    Qty qty;
-
 };
 
 struct PriceLevel {
@@ -36,26 +31,18 @@ struct PriceLevel {
 
 };
 
-// 比较两笔成交是否完全相同。测试和对拍程序需要逐笔比较输出。
-// 写成非成员函数（而不是成员 operator==）是 C++17 的惯用写法：
-// 两边参数地位对称，且保持 Trade 是一个纯聚合体。
-inline bool operator ==(const Trade& a, const Trade& b) noexcept {
-    return a.maker_id == b.maker_id 
-    && a.taker_id == b.taker_id
-    && a.aggressor == b.aggressor 
-    && a.price == b.price
-    && a.qty == b.qty;
-}
-
-// TODO: 搞懂 inline
-inline bool operator!=(const Trade& a, const Trade& b) noexcept {
-    return !(a == b);
-}
-
-// 为了让 << 可以识别 Trade 类型
-inline std::ostream& operator<<(std::ostream& os, const Trade& a) {
-    return os << "[TRADE] maker=" << a.maker_id << " taker=" << a.taker_id << " price=" << a.price << " qty=" << a.qty << "\n";
-}
+// Fill 订单簿撮合时，产出的
+// 订单簿 不再负责 产出 Trade，而是 gen Fill 然后交给 Engine 去处理
+// 订单簿 应该 只 focus on 价格 数量 队列， 其他的 都不用管
+struct Fill {
+    // fill 是一次 match(taker, fills) 的内部结果，Engine 知道taker 是谁
+    OrderId maker_id;
+    Price price; // maker 价格
+    Qty qty; // 本笔成交量
+    Qty maker_leaves; // 成交后，maker 的剩余量
+    Qty maker_cum;
+    Qty level_total; // 成交后 该价位的总量
+};
 
 }
 

@@ -16,8 +16,8 @@ int main(int argc, char** argv) {
     // 如果只用 cin cout，真的可以关掉
     std::ios::sync_with_stdio(false);
 
-    lob::OrderBook book;
-    lob::RunStats stats;
+    exchange::OrderBook book;
+    exchange::RunStats stats;
 
     if (argc >= 2) {
         std::ifstream file(argv[1]); // input file stream
@@ -25,9 +25,9 @@ int main(int argc, char** argv) {
             std::cerr << "cannot open " << argv[1] << "\n";
             return 1;
         }
-        stats = lob::run_commands(file, std::cout, book);
+        stats = exchange::run_commands(file, std::cout, book);
     } else {
-        stats = lob::run_commands(std::cin, std::cout, book);    
+        stats = exchange::run_commands(std::cin, std::cout, book);
     }
 
     // 统计信息写到 stderr，不污染 stdout 上的正式输出，
