@@ -92,34 +92,91 @@ TEST_F(OrderBookTest, T3_TakerLarger_RemainderRests) {
 
 // Case 4: maker 数量更大，maker 剩余量更新，并且仍然排在队首
 TEST_F(OrderBookTest, T4_MakerLarger_MakerKeepsQueuePosition) {
-    GTEST_SKIP() << "TODO";
-    // TODO Arrange: 同一价位挂两张卖单，先挂大的（id 1），再挂一张（id 2）
-    // TODO Act:     一张买单吃掉 id 1 的一部分（数量 < id 1 的数量）
-    // TODO Assert:
-    //   - 只有 1 笔成交，maker 是 id 1，数量是买单数量
-    //   - id 1 还在簿里，remaining_qty 减少了对应数量
-    //   - 再来一张买单：先成交的仍然是 id 1，而不是 id 2（部分成交不会让 maker 丢掉队首位置）
+
+    ASSERT_NO_FATAL_FAILURE(rest(1, Side::Sell, 100, 5));
+    ASSERT_NO_FATAL_FAILURE(rest(2, Side::Sell, 100, 10));
+    const AddResult r = book.add(3, Side::Buy, 100, 3);
+
+    ASSERT_TRUE(r.accepted());
+    EXPECT_EQ(r.trades.size(), 1u);
+    EXPECT_EQ(r.trades[0], (Trade{1, 3, Side::Buy, 100, 3}));
+    EXPECT_EQ(book.remaining_qty(1), 2); // maker 1 还剩 2 单
+    EXPECT_EQ(book.remaining_qty(2), 10); // maker 2 没有变化
+
+    ASSERT_FALSE(book.best_bid().has_value()); // 买盘空了
+    ASSERT_FALSE(book.contains(3)); // taker 3 不应该还在 orderbook里，因为全部成交了
+    EXPECT_EQ(book.order_count(), 2u); // 两个 sell order
+    EXPECT_EQ(book.best_ask(), 100); 
+
+    // -------------------------------------
+    const AddResult r2 = book.add(4, Side::Buy, 100, 1);
+
+    ASSERT_TRUE(r2.accepted());
+    EXPECT_EQ(r2.trades.size(), 1u);
+    // 如果 以下不成立，就说明，maker 1 在第一笔成交后 不再 队头了
+    EXPECT_EQ(r2.trades[0], (Trade{1, 4, Side::Buy, 100, 1}));
+
+    EXPECT_EQ(book.remaining_qty(1), 1);
+    EXPECT_EQ(book.remaining_qty(2), 10);
+    EXPECT_FALSE(book.contains(4)); // taker 4 吃饱了 全部成交
 }
 
 // Case 5: 一笔订单吃多个价位，按价格从优到劣成交
 TEST_F(OrderBookTest, T5_SweepMultipleLevels_BestPriceFirst) {
-    GTEST_SKIP() << "TODO";
-    // TODO Arrange: 挂 3 个不同价位的卖单（故意不按价格顺序挂，例如 102、100、101）
-    // TODO Act:     一张高价买单，数量足够吃掉其中两个半价位
-    // TODO Assert:
-    //   - trades 的顺序：价格 100 → 101 → 102，每笔的 maker id / price / qty 都对
-    //   - 被吃光的价位消失，best_ask 变成剩下的那个价位
-    //   - 最后那个价位上的 maker 剩余量正确
+    // 挂 3 个不同价位的卖单（故意不按价格顺序挂，例如 102、100、101）
+    // 100, 101, 102
+    ASSERT_NO_FATAL_FAILURE(rest(1, Side::Sell, 102, 5));
+    ASSERT_NO_FATAL_FAILURE(rest(2, Side::Sell, 100, 5));
+    ASSERT_NO_FATAL_FAILURE(rest(3, Side::Sell, 101, 5));
+
+    EXPECT_EQ(book.best_ask(), 100); // best_ask: 100 最低卖价
+
+    // 一张高价买单，数量足够吃掉其中两个半价位
+    const AddResult r1 = book.add(4, Side::Buy, 102, 12);
+
+    ASSERT_TRUE(r1.accepted());
+    ASSERT_EQ(r1.trades.size(), 3u);
+    EXPECT_EQ(r1.trades[0], (Trade{2, 4, Side::Buy, 100, 5}));
+    EXPECT_EQ(r1.trades[1], (Trade{3, 4, Side::Buy, 101, 5}));
+    EXPECT_EQ(r1.trades[2], (Trade{1, 4, Side::Buy, 102, 2}));
+
+    EXPECT_EQ(book.order_count(), 1u);
+    EXPECT_FALSE(book.best_bid().has_value());
+    EXPECT_EQ(book.best_ask(), 102);
+    EXPECT_TRUE(book.contains(1)); // sell 102, 还在 剩余 3股，没被 taker 完
+    EXPECT_EQ(book.remaining_qty(1), 3);
+    EXPECT_FALSE(book.contains(2)); // sell, 100
+    EXPECT_FALSE(book.contains(3)); // sell, 101
+    EXPECT_FALSE(book.contains(4)); // buy,  102
 }
 
 // Case 5b: 扫价位时遇到超出限价的价位必须停下，剩余量挂单
 TEST_F(OrderBookTest, T5b_SweepStopsAtLimitPrice) {
-    GTEST_SKIP() << "TODO";
-    // TODO Arrange: 卖盘挂 100、101、102 三个价位
-    // TODO Act:     买单限价 101，数量大于 100 + 101 两个价位的总量
-    // TODO Assert:
-    //   - 只和 100、101 成交，102 没有被碰到
-    //   - 买单剩余量挂在买盘 101；best_bid == 101，best_ask == 102
+    // 卖盘挂 100、101、102 三个价位
+    ASSERT_NO_FATAL_FAILURE(rest(1, Side::Sell, 102, 5));
+    ASSERT_NO_FATAL_FAILURE(rest(2, Side::Sell, 100, 5));
+    ASSERT_NO_FATAL_FAILURE(rest(3, Side::Sell, 101, 5));
+    // 买单限价 101，数量大于 100 + 101 两个价位的总量
+    const AddResult r1 = book.add(4, Side::Buy, 101, 15);
+
+    ASSERT_TRUE(r1.accepted());
+    ASSERT_EQ(r1.trades.size(), 2u);
+    EXPECT_EQ(r1.trades[0], (Trade{2, 4, Side::Buy, 100, 5}));
+    EXPECT_EQ(r1.trades[1], (Trade{3, 4, Side::Buy, 101, 5}));
+
+    // 卖单 100， 101 全部成交
+    EXPECT_FALSE(book.contains(2));
+    EXPECT_FALSE(book.contains(3));
+    // 卖单 102，买单吃不到
+    EXPECT_TRUE(book.contains(1)); 
+    EXPECT_EQ(book.remaining_qty(1), 5);
+    // 买单没吃饱
+    EXPECT_TRUE(book.contains(4)); 
+    EXPECT_EQ(book.remaining_qty(4), 5);
+
+    EXPECT_EQ(book.order_count(), 2u); // 买单 101， 卖单 102
+    EXPECT_EQ(book.best_ask(), 102); // 卖盘 最低卖价
+    EXPECT_EQ(book.best_bid(), 101); // 买盘 最高买价
 }
 
 // Case 5c: 卖单吃买盘（反方向），检查 bids_ 是从高价往低价吃
