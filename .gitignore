@@ -16,3 +16,5 @@ orderbook_roadmap.md
 
 exchange-engine-v1/v1_checklist.md
 exchange-engine-v1/src/BUILD_GUIDE.md
+exchange-engine-v1/data/sample_expected.txt
+exchange-engine-v1/tests/GTEST_CHEATSHEET.md
