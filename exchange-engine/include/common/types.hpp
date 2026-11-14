@@ -63,6 +63,6 @@ namespace exchange {
 // 市价单 相当于 限价无穷的 IOC 单, 但是 市价单 不会挂进 Orderbook 里面， 否则就会出现 INFINIT 价格在 订单上
 // 买单愿意出任意高价， 卖单愿意出任意低价
 inline constexpr Price kMarketBuyLimit = std::numeric_limits<Price>::max();
-inline constexpr Price KMarketSellLimit = std::numeric_limits<Price>::min();
+inline constexpr Price kMarketSellLimit = std::numeric_limits<Price>::min();
 
 } // namespace

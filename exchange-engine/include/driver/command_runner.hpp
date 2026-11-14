@@ -16,5 +16,5 @@ struct RunStats {
 };
 
 // 逐行读取 in 中的指令，在 book 上执行，结果 写入到 out
-RunStats run_commands(std::istream& in, std::ostream& out, OrderBook& book);
+RunStats run_commands(std::istream& in, std::ostream& out);
 }

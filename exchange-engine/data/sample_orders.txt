@@ -1,0 +1,57 @@
+# =====================================================================
+# v2 样例指令。运行：./build/file_driver data/sample_orders.txt
+# 期望输出：data/sample_expected.txt（手算得出）
+# 逐段手推过程见 LEARNING_GUIDE.md 第 6 节
+# =====================================================================
+SYMBOL AAA 1 1
+SYMBOL BBB 5 100
+
+# ---- 第 1 段：建立盘口 ----------------------------------------------
+NEW AAA 1 SELL LIMIT 101 10
+NEW AAA 2 SELL LIMIT 102 10
+NEW AAA 3 BUY LIMIT 99 10
+PRINT AAA
+
+# ---- 第 2 段：GTC 部分成交，剩余挂单（路线图 3.3 的时序图例子）------------
+NEW AAA 4 BUY LIMIT 101 15
+
+# ---- 第 3 段：IOC —— 能成交多少算多少，剩余撤销 ---------------------------
+NEW AAA 5 SELL LIMIT 100 8 IOC
+
+# ---- 第 4 段：FOK —— 差 1 手整单撤销；刚好够则全部成交 ----------------------
+NEW AAA 6 BUY LIMIT 102 11 FOK
+NEW AAA 7 BUY LIMIT 102 10 FOK
+
+# ---- 第 5 段：市价单 ----------------------------------------------------
+# 卖盘已空：整单撤销
+NEW AAA 8 BUY MARKET 5
+NEW AAA 9 SELL MARKET 4
+# 市价 + GTC：拒绝
+NEW AAA 10 SELL MARKET 4 GTC
+
+# ---- 第 6 段：改单 ------------------------------------------------------
+NEW AAA 11 BUY LIMIT 99 5
+# 同价减量：保留队首
+MODIFY AAA 3 99 2
+# 同价加量：失去优先级，排到 11 号后面
+MODIFY AAA 3 99 5
+# 验证：先成交 11 号，再成交 3 号
+NEW AAA 12 SELL LIMIT 99 6
+NEW AAA 13 SELL LIMIT 103 3
+# 改价后与卖盘交叉：立即成交，剩余挂在新价位
+MODIFY AAA 3 103 4
+
+# ---- 第 7 段：撤单 ------------------------------------------------------
+CANCEL AAA 3
+CANCEL AAA 3
+
+# ---- 第 8 段：第二个品种（tick 5，lot 100）与多品种隔离 ---------------------
+NEW BBB 1 BUY LIMIT 1002 100
+NEW BBB 1 BUY LIMIT 1000 150
+NEW BBB 1 BUY LIMIT 1000 200
+NEW BBB 2 BUY LIMIT 995 100
+NEW BBB 3 BUY LIMIT 990 100
+MODIFY BBB 1 1000 250
+NEW BBB 1 SELL LIMIT 1005 100
+PRINT BBB 2
+PRINT AAA

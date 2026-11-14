@@ -34,6 +34,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <limits>
 
 #include "book/order.hpp"
 #include "common/types.hpp"

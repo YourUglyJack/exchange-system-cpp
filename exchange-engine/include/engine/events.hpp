@@ -47,6 +47,7 @@ enum class RejectReason : std::uint8_t {
     BadTickSize, // 价格不是 tick_size 的整数倍，不符合交易规则
     BadLotSize, // 下单量 不是 lot_size 的整数倍
     InvalidTif, // market + GTC 不存在这种组合
+    NoChange,
 };
 
 // “Accepted” 字符串字面量，本质是以 \0 结尾的 const char数组，在整个程序运行期间都有效
@@ -74,6 +75,7 @@ constexpr const char* to_string(RejectReason r) noexcept {
         case RejectReason::BadTickSize: return "BadTickSize";
         case RejectReason::BadLotSize: return "BadLotSize";
         case RejectReason::InvalidTif: return "InvalidTif";
+        case RejectReason::NoChange: return "NoChange";
     }
     return "?";
 }

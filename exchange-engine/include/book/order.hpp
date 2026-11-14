@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstdint>
+#include <list>
 #include "common/types.hpp"
 
 // class 和 struct 其实没啥区别，就是 访问权限 和 是否暴露接口 / 成员的问题
