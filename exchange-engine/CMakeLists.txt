@@ -45,36 +45,25 @@ target_link_libraries(exchange_core PRIVATE exchange_warnings)
 add_executable(file_driver apps/file_driver.cpp)
 target_link_libraries(file_driver PRIVATE exchange_core exchange_warnings)
 
+# 对拍入门程序：与文件驱动共用被测引擎，参考引擎独立实现撮合逻辑。
+add_executable(fuzz_compare "apps/fuzz_compare.cpp")
+target_link_libraries(fuzz_compare PRIVATE exchange_core exchange_warnings)
+
 # ---- 测试 ------------------------------------------------------------------
-# if(EXCHANGE_BUILD_TESTS)
-#   enable_testing()
+if(EXCHANGE_BUILD_TESTS)
+  enable_testing()
 
-#   # 优先使用系统安装的 GoogleTest（apt install libgtest-dev / brew install googletest），
-#   # 找不到时自动从 GitHub 下载。
-#   find_package(GTest QUIET)
-#   if(NOT GTest_FOUND)
-#     include(FetchContent)
-#     FetchContent_Declare(googletest
-#       URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz
-#       DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
-#     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)  # Windows/MSVC 需要
-#     FetchContent_MakeAvailable(googletest)
-#   endif()
-#   include(GoogleTest)
+  # 使用本机安装的 GoogleTest，先接入当前已存在的测试文件。
+  find_package(GTest CONFIG REQUIRED)
 
-#   add_executable(exchange_tests
-#     tests/test_order_book.cpp
-#     tests/test_engine_basic.cpp
-#     tests/test_engine_order_types.cpp
-#     tests/test_engine_events.cpp
-#     tests/test_command_runner.cpp
-#   )
+  add_executable(exchange_tests
+    "tests/test_order_book.cpp"
+    "tests/test_engine_basic.cpp"
+    "tests/engine_fixture.hpp"
+  )
+  
+  target_link_libraries(exchange_tests PRIVATE exchange_core exchange_warnings GTest::gtest_main)
 
-#   target_link_libraries(exchange_tests PRIVATE exchange_core exchange_warnings GTest::gtest_main)
-#   # 把数据目录的绝对路径编译进测试，测试在任何工作目录下都能找到样例文件
-#   target_compile_definitions(exchange_tests PRIVATE EXCHAGNE_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
-#   gtest_discover_tests(exchange_tests)
-
-#   # 对拍也作为一个测试运行（20 个种子 × 5000 步，几秒内完成）
-#   add_test(NAME fuzz_compare_quick COMMAND fuzz_compare 1 20 5000)
-# endif()
+  include(GoogleTest)
+  gtest_discover_tests(exchange_tests)
+endif()

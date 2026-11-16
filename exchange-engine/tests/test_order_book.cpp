@@ -138,13 +138,13 @@ TEST_F(BookTest, SnapshotDepthLimitsLevels) {
     }
     ASSERT_EQ(book.order_count(), 5u);
 
-    const BookSnap s = book.snapshot(2); // 只拷贝 2 个档位
+    const BookSnapshot s = book.snapshot(2); // 只拷贝 2 个档位
     
     ASSERT_EQ(s.bids.size(), 2u);
     EXPECT_EQ(s.bids[0].price, 5);
     EXPECT_EQ(s.bids[1].price, 4);
 
-    const BookSnap s_defulat = book.snapshot();
+    const BookSnapshot s_defulat = book.snapshot();
     EXPECT_EQ(s_defulat.bids.size(), 5u);
 }
 }

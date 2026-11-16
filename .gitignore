@@ -6,15 +6,13 @@ compile_commands.json
 settings.json
 .DS_Store
 
-lob-v1/
-lob-v2/
+learning-pack/
 cpp-exchange-engine/
 
 
 orderbook_data_structure.excalidraw
 orderbook_roadmap.md
 
-CPP_EXCHANGE_ENGINE_PRD.md
 orderbook_data_structure.excalidraw
 orderbook_roadmap.md
 

@@ -1,4 +1,5 @@
 #include "engine_fixture.hpp"
+#include "testing/reference_engine.hpp"
 
 using namespace exchange;
 using namespace exchange::test;
@@ -112,10 +113,10 @@ protected:
         EXPECT_EQ(e[0].reason, why);
         EXPECT_EQ(book().snapshot(), before);
     }
-    BookSnap before;
+    BookSnapshot before;
 };
 
-TEST_F(RejectTest, UnknownSymbol) { limit(9, Side::Buy, 100, 1, TimeInForce::GTC, 77); expect_reject(RejectReason::UnknowSymbol); }
+TEST_F(RejectTest, UnknownSymbol) { limit(9, Side::Buy, 100, 1, TimeInForce::GTC, 77); expect_reject(RejectReason::UnknownSymbol); }
 TEST_F(RejectTest, InvalidQty) { limit(9, Side::Buy, 100, 0); expect_reject(RejectReason::InvalidQty); }
 TEST_F(RejectTest, InvalidPrice) { limit(9, Side::Buy, -1, 1); expect_reject(RejectReason::InvalidPrice); }
 TEST_F(RejectTest, BadTickSize) { limit(9, Side::Buy, 1003, 100, TimeInForce::GTC, 2); expect_reject(RejectReason::BadTickSize); }
@@ -163,4 +164,43 @@ TEST_F(EngineTest, AddSymbolRejectsDuplicateAndBadConfig) {
     EXPECT_FALSE(engine.add_symbol(SymbolConfig{AAA, "dup", 1, 1}));
     EXPECT_FALSE(engine.add_symbol(SymbolConfig{5, "zero-tick", 0, 1}));
     EXPECT_FALSE(engine.add_symbol(SymbolConfig{6, "zero-lot", 1, 0}));
+}
+
+TEST_F(EngineTest, ReferenceRegistrationRejectsInvalidConfigWithoutReservingSymbol) {
+    exchange::testing::ReferenceEngine ref;
+    for (const SymbolConfig& cfg : {
+        SymbolConfig{2, "zero-tick", 0, 1},
+        SymbolConfig{2, "negative-tick", -1, 1},
+        SymbolConfig{2, "zero-lot", 1, 0},
+        SymbolConfig{2, "negative-lot", 1, -1},
+    }) {
+        EXPECT_FALSE(engine.add_symbol(cfg));
+        EXPECT_FALSE(ref.add_symbol(cfg));
+    }
+    const SymbolConfig valid{2, "BBB", 5, 10};
+    EXPECT_TRUE(engine.add_symbol(valid));
+    EXPECT_TRUE(ref.add_symbol(valid));
+}
+
+TEST_F(EngineTest, ReferenceDuplicateRegistrationKeepsConfigurationAndOrders) {
+    exchange::testing::ReferenceEngine ref;
+    ASSERT_TRUE(ref.add_symbol(SymbolConfig{AAA, "AAA", 1, 1}));
+    rest(1, Side::Sell, 100, 5);
+    ref.handle(NewOrder{1, AAA, Side::Sell, OrderType::Limit, TimeInForce::GTC, 100, 5});
+    const BookSnapshot before = ref.snapshot(AAA);
+
+    const SymbolConfig duplicate{AAA, "changed", 5, 10};
+    EXPECT_FALSE(engine.add_symbol(duplicate));
+    EXPECT_FALSE(ref.add_symbol(duplicate));
+    EXPECT_EQ(ref.snapshot(AAA), before);
+
+    // 此单只符合原配置，用实际下单验证重复注册没有覆盖 tick/lot。
+    limit(2, Side::Buy, 99, 1);
+    const auto events = ref.handle(
+        NewOrder{2, AAA, Side::Buy, OrderType::Limit, TimeInForce::GTC, 99, 1});
+    ASSERT_EQ(events.size(), 1u);
+    const auto* report = std::get_if<ExecReport>(&events.front());
+    ASSERT_NE(report, nullptr);
+    EXPECT_EQ(report->type, ExecType::Accepted);
+    EXPECT_EQ(ref.snapshot(AAA), book().snapshot());
 }
