@@ -22,16 +22,16 @@ inline bool operator==(const LevelView& a, const LevelView& b) {
     return a.price == b.price && a.total_qty == b.total_qty && a.order_count == b.order_count;
 }
 
-struct BookSnap {
+struct BookSnapshot {
     std::vector<LevelView> bids;
     std::vector<LevelView> asks;
 };
 
-inline bool operator==(const BookSnap& a, const BookSnap& b) {
+inline bool operator==(const BookSnapshot& a, const BookSnapshot& b) {
     return a.asks == b.asks && a.bids == b.bids;
 }
 
-inline bool operator!=(const BookSnap& a, const BookSnap& b) {
+inline bool operator!=(const BookSnapshot& a, const BookSnapshot& b) {
     return !(a == b);
 }
 }

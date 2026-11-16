@@ -65,7 +65,7 @@ void MatchingEngine::on_request(const NewOrder& r) {
     // check 是否注册 该 symbol 的订单簿
     SymbolState* s = find_symbol(r.symbol);
     if (!s) {
-        return emit_reject(r.symbol, r.id, RejectReason::UnknowSymbol);
+        return emit_reject(r.symbol, r.id, RejectReason::UnknownSymbol);
     }
     
     // check 参数
@@ -149,7 +149,7 @@ void MatchingEngine::execute(SymbolState& s, Order& taker, TimeInForce tif) {
 // ================================
 void MatchingEngine::on_request(const CancelOrder& r) {
     SymbolState* s = find_symbol(r.symbol);
-    if(!s) return emit_reject(r.symbol, r.id, RejectReason::UnknowSymbol);
+    if(!s) return emit_reject(r.symbol, r.id, RejectReason::UnknownSymbol);
     
     const auto removed = s->book.remove(r.id);
     if (!removed) return emit_reject(r.symbol, r.id, RejectReason::UnknownOrder);
@@ -164,7 +164,7 @@ void MatchingEngine::on_request(const CancelOrder& r) {
 // ================================
 void MatchingEngine::on_request(const ModifyOrder& r) {
     SymbolState* s = find_symbol(r.symbol);
-    if(!s) return emit_reject(r.symbol, r.id, RejectReason::UnknowSymbol);
+    if(!s) return emit_reject(r.symbol, r.id, RejectReason::UnknownSymbol);
     const SymbolConfig& cfg = s->cfg;
 
     // 静态错误在前

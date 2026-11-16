@@ -41,7 +41,7 @@ enum class RejectReason : std::uint8_t {
     None, 
     DuplicateId,   // 重复 order id
     UnknownOrder,  // 撤单 / 改单 的目标订单 不存在
-    UnknowSymbol,  // 品种未注册
+    UnknownSymbol,  // 品种未注册
     InvalidQty,  // qty <= 0
     InvalidPrice,  // 限价单 价格 <= 0
     BadTickSize, // 价格不是 tick_size 的整数倍，不符合交易规则
@@ -69,7 +69,7 @@ constexpr const char* to_string(RejectReason r) noexcept {
         case RejectReason::None: return "None";
         case RejectReason::DuplicateId: return "DuplicateId";
         case RejectReason::UnknownOrder: return "UnknownOrder";
-        case RejectReason::UnknowSymbol: return "UnknowSymbol";
+        case RejectReason::UnknownSymbol: return "UnknownSymbol";
         case RejectReason::InvalidQty: return "InvalidQty";
         case RejectReason::InvalidPrice: return "InvalidPrice";
         case RejectReason::BadTickSize: return "BadTickSize";

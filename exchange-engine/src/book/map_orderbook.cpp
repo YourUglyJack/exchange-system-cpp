@@ -255,14 +255,14 @@ std::optional<Qty> OrderBook::remaining_qty(OrderId id) const {
     return found->second.it->qty;
 }
 
-BookSnap OrderBook::snapshot(std::size_t depth) const {
-    return BookSnap{collect_levels(bids_, depth), collect_levels(asks_, depth)};
+BookSnapshot OrderBook::snapshot(std::size_t depth) const {
+    return BookSnapshot{collect_levels(bids_, depth), collect_levels(asks_, depth)};
 }
 
 void OrderBook::print(std::ostream& os, std::size_t depth) const {
     os << "========== OrderBook ============\n";
     // asks 卖盘，用 rbegin 从高到低打印，最优（最低）卖价在最后一行，紧贴 ----
-    const BookSnap& s = snapshot(depth);
+    const BookSnapshot& s = snapshot(depth);
     for (auto it = s.asks.rbegin(); it != s.asks.rend(); ++it) {
         os << "ASK " << it->price << " " << it->total_qty << " (" << it->order_count << ")\n";
     }

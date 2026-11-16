@@ -86,7 +86,7 @@ public:
 
     void print(std::ostream& os, std::size_t depth = kAllLevels) const;
     
-    BookSnap snapshot(std::size_t depth = kAllLevels) const;
+    BookSnapshot snapshot(std::size_t depth = kAllLevels) const;
     // 检查 orderbook 内 所有不变量
     bool check_invariants(std::string* why = nullptr) const;
 
